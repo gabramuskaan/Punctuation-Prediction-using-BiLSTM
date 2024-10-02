@@ -1,0 +1,1472 @@
+Declaring pointers
+Consider the following snippet of code which declares two pointers:
+struct MyStruct { int	m_aNumber  float num2  } 
+int main()
+{ int *pJ2 
+    struct MyStruct *pAnItem  }
+Lines 1-4 define a structure  
+Line 8 declares a variable which points to an int  and line 9 declares a variable which points to something with structure MyStruct  
+So to declare a variable as something which points to some type  rather than contains some type  the asterisk (*) is placed before the variable name 
+In the following  line 1 declares var1 as a pointer to a long and var2 as a long and not a pointer to a long  In line 2  p3 is declared as a pointer to a pointer to an int 
+long * var1  var2 
+
+int **p3 
+Pointer types are often used as parameters to function calls  
+The following shows how to declare a function which uses a pointer as an argument  
+Since C passes function arguments by value  in order to allow a function to modify a value from the calling routine  a pointer to the value must be passed  
+Pointers to structures are also used as function arguments even when nothing in the struct will be modified in the function  
+This is done to avoid copying the complete contents of the structure onto the stack  
+More about pointers as function arguments later 
+int MyFunction( struct MyStruct *pStruct ) 
+Assigning values to pointers
+So far we've discussed how to declare pointers  
+The process of assigning values to pointers is next  
+To assign the address of a variable to a pointer  the & or 'address of' operator is used 
+int myInt  int *pPointer  struct MyStruct dvorak  struct MyStruct *pKeyboard 
+pPointer = &myInt  pKeyboard = &dvorak 
+
+Here  pPointer will now reference myInt and pKeyboard will reference dvorak 
+Pointers can also be assigned to reference dynamically allocated memory  
+The malloc() and calloc() functions are often used to do this 
+#include <stdlib h> /*     */
+struct MyStruct *pKeyboard 
+/*     */ pKeyboard = malloc(sizeof *pKeyboard) 
+The malloc function returns a pointer to dynamically allocated memory (or NULL if unsuccessful)  
+The size of this memory will be appropriately sized to contain the MyStruct structure 
+The following is an example showing one pointer being assigned to another and of a pointer being assigned a return value from a function 
+static struct MyStruct val1  val2  val3  val4 
+struct MyStruct *ASillyFunction( int b )
+{ struct MyStruct *myReturn 
+if (b == 1) myReturn = &val1  else if (b==2) myReturn = &val2  else if (b==3) myReturn = &val3  else myReturn = &val4 
+return myReturn 
+}
+struct MyStruct *strPointer 
+int	*c  *d  int	j 
+c = &j 	/* pointer assigned using & operator */ d = c 	/* assign one pointer to another	*/ strPointer = ASillyFunction( 3 )  /* pointer returned from a function  */
+When returning a pointer from a function  do not return a pointer that points to a value that is local to the function or that is a pointer to a function argument  
+Pointers to local variables become invalid when the function exits  
+In the above function  the value returned points to a static variable  
+Returning a pointer to dynamically allocated memory is also valid 
+Pointer dereferencing
+
+To access a value to which a pointer points  the * operator is used  
+Another operator  the -> operator is used in conjunction with pointers to structures  
+Here's a short example 
+int	c  d 
+int	*pj 
+struct MyStruct astruct  struct MyStruct *bb 
+c = 10   pj = &c  /* pj points to c */ d = *pj  /* d is assigned the value to which pj points  10 */ pj = &d  /* now points to d */ *pj = 12  bb = &astruct  /* d is now 12 */ (*bb) m_aNumber = 3  /* assigns 3 to the m_aNumber member of astruct */ bb->num2 = 44 3 
+/* assigns 44 3 to the num2 member of astruct	*/
+*pj = bb->m_aNumber 
+/* eqivalent to d = astruct m_aNumber 	*/
+The expression bb->m_aNumber is entirely equivalent to (*bb) m_aNumber  
+They both access the m_aNumber element of the structure pointed to by bb  
+There is one more way of dereferencing a pointer  which will be discussed in the following section 
+When dereferencing a pointer that points to an invalid memory location  an error often occurs which results in the program terminating  
+The error is often reported as a segmentation error  
+A common cause of this is failure to initialize a pointer before trying to dereference it 
+C is known for giving you just enough rope to hang yourself  and pointer dereferencing is a prime example  
+You are quite free to write code that accesses memory outside that which you have explicitly requested from the system  
+And many times  that memory may appear as available to your program due to the vagaries of system memory allocation  
+However  even if 99 executions allow your program to run without fault  that 100th execution may be the time when your ”memory pilfering” is caught by the system and the program fails  
+Be careful to ensure that your pointer offsets are within the bounds of allocated memory 
+The declaration void *somePointer  is used to declare a pointer of some nonspecified type 
+You can assign a value to a void pointer  but you must cast the variable to point to some specified type before you can dereference it  
+Pointer arithmetic is also not valid with void * pointers 
+Pointers and Arrays
+Up to now  we've carefully been avoiding discussing arrays in the context of pointers  
+The interaction of pointers and arrays can be confusing but here are two fundamental statements about it:
+• A variable declared as an array of some type acts as a pointer to that type  
+• When used by itself  it points to the first element of the array 
+• A pointer can be indexed like an array name 
+The first case often is seen to occur when an array is passed as an argument to a function  
+The function declares the parameter as a pointer  but the actual argument may be the name of an array  
+The second case often occurs when accessing dynamically allocated memory 
+Let's look at examples of each  In the following code  the call to calloc() effectively allocates an array of struct MyStruct items 
+float KrazyFunction( struct MyStruct *parm1  int p1size  int bb )
+{ int ix  //declaring an integer variable// for (ix=0  ix<p1size  ix++) { if (parm1[ix] m_aNumber == bb ) return parm1[ix] num2 
+} return 0 0f 
+}
+/*     */
+struct MyStruct myArray[4] 
+#define MY_ARRAY_SIZE (sizeof(myArray)/sizeof(*myArray)) float v3 
+struct MyStruct *secondArray 
+int	someSize 
+int	ix 
+/* initialization of myArray     */
+v3 = KrazyFunction( myArray  MY_ARRAY_SIZE  4 ) 
+/*     */
+secondArray = calloc( someSize  sizeof(myArray) )  for (ix=0  ix<someSize  ix++) { secondArray[ix] m_aNumber = ix *2  secondArray[ix] num2 =  304 * ix * ix  }
+Pointers and array names can pretty much be used interchangeably  
+There are exceptions  You cannot assign a new pointer value to an array name  
+The array name will always point to the first element of the array  
+In the function KrazyFunction above  you could however assign a new value to parm1  as it is just a pointer to the first element of myArray  
+It is also valid for a function to return a pointer to one of the array elements from an array passed as an argument to a function  
+A function should never return a pointer to a local variable  even though the compiler will probably not complain 
+When declaring parameters to functions  declaring an array variable without a size is equivalent to declaring a pointer  
+Often this is done to emphasize the fact that the pointer variable will be used in a manner equivalent to an array 
+/* two equivalent function definitions */ int LittleFunction( int *paramN )  int LittleFunction( int paramN[] ) 
+Now we're ready to discuss pointer arithmetic  
+You can add and subtract integer values to/from pointers  
+If myArray is declared to be some type of array  the expression *(myArray+j)  where j is an integer  is equivalent to myArray[j]  
+So for instance in the above example where we had the expression secondArray[i] num2  we could have written that as *(secondArray+i) num2 or more simply (secondArray+i)->num2 
+Note that for addition and subtraction of integers and pointers  the value of the pointer is not adjusted by the integer amount  but is adjusted by the amount multiplied by the size (in bytes) of the type to which the pointer refers  
+One pointer may also be subtracted from another  provided they point to elements of the same array (or the position just beyond the end of the array)  
+If you have a pointer that points to an element of an array  the index of the element is the result when the array name is subtracted from the pointer  
+Here's an example 
+struct MyStruct someArray[20]  struct MyStruct *p2  int idx 
+ 
+/* array initialization    */  
+for (p2 = someArray  p2 < someArray+20  ++p2) { if (p2->num2 > testValue) break 
+} idx = p2 - someArray 
+You may be wondering how pointers and multidimensional arrays interact  
+Let's look at this a bit in detail  
+Suppose A is declared as a two dimensional array of floats (float A[D1][D2] ) and that pf is declared a pointer to a float  
+If pf is initialized to point to A[0][0]  then *(pf+1) is equivalent to A[0][1] and *(pf+D2) is equivalent to A[1][0]  
+The elements of the array are stored in row-major order 
+float A[6][8]  float *pf  pf = &A[0][0] 
+*(pf+1) = 1 3  /* assigns 1 3 to A[0][1] */
+*(pf+8) = 2 3  /* assigns 2 3 to A[1][0] */
+Let's look at a slightly different problem  
+We want to have a two dimensional array  but we don't need to have all the rows the same length 
+What we do is declare an array of pointers  
+The second line below declares A as an array of pointers  
+Each pointer points to a float  
+Here's some applicable code:
+float linearA[30]  float *A[6] 
+A[0] = linearA  /* 5 - 0 = 5 elements in row */ A[1] = linearA + 5  /* 11 - 5 = 6 elements in row */ A[2] = linearA + 11  /* 15 - 11 = 4 elements in row */ A[3] = linearA + 15  	/* 21 - 15 = 6 elements	*/ A[4] = linearA + 21  	/* 25 - 21 = 4 elements	*/ A[5] = linearA + 25 
+	/* 30 - 25 = 5 elements	*/
+*A[3][2] = 3 66 
+/* assigns 3 66 to linearA[17] 	*/
+*A[3][-3] = 1 44 
+/* refers to linearA[12] 
+negative indices are sometimes useful  But avoid
+using them as much as possible  */
+We also note here something curious about array indexing  
+Suppose myArray is an array and idx is an integer value  
+The expression myArray[idx] is equivalent to idx[myArray]  
+The first is equivalent to *(myArray+idx)  and the second is equivalent to *(idx+myArray)  
+These turn out to be the same  since the addition is commutative 
+Pointers can be used with preincrement or post decrement  which is sometimes done within a loop  as in the following example  
+The increment and decrement applies to the pointer  not to the object to which the pointer refers  
+In other words  *pArray++ is equivalent to *(pArray++) 
+long myArray[20] 
+long *pArray  int i 
+/* Assign values to the entries of myArray */
+pArray = myArray  for (i=0  i<10  ++i) {
+*pArray++ = 5 + 3*i + 12*i*i 
+*pArray++ = 6 + 2*i + 7*i*i 
+}
+Pointers in Function Arguments
+Often we need to invoke a function with an argument that is itself a pointer  
+In many instances  the variable is itself a parameter for the current function and may be a pointer to some type of structure  
+The ampersand character is not needed in this circumstance to obtain a pointer value  as the variable is itself a pointer  
+In the example below  the variable pStruct  a pointer  is a parameter to function FunctTwo  and is passed as an argument to FunctOne  
+The second parameter to FunctOne is an int  
+Since in function FunctTwo  mValue is a pointer to an int  the pointer must first be dereferenced using the * operator  hence the second argument in the call is *mValue  
+The third parameter to function FunctOne is a pointer to a long  
+Since pAA is itself a pointer to a long  no ampersand is needed when it is used as the third argument to the function 
+int FunctOne( struct SomeStruct *pValue  int iValue  long *lValue )
+
+{
+/* do some stuff     */
+return 0 
+}
+int FunctTwo( struct someStruct *pStruct  int *mValue )
+{ int j  long AnArray[25]  long *pAA 
+pAA = &AnArray[13] 
+  j = FunctOne( pStruct  *mValue  pAA )  return j  }
+Pointers and Text Strings
+Historically  text strings in C have been implemented as arrays of characters  with the last byte in the string being a zero  or the null character '\0'  
+Most C implementations come with a standard library of functions for manipulating strings  
+Many of the more commonly used functions expect the strings to be null terminated strings of characters  
+To use these functions requires the inclusion of the standard C header file ”string h”  
+A statically declared  initialized string would look similar to the following: static const char *myFormat = "Total Amount Due: %d" 
+The variable myFormat can be viewed as an array of 21 characters  
+There is an implied null character ('\0') tacked on to the end of the string after the 'd' as the 21st item in the array  
+You can also initialize the individual characters of the array as follows: static const char myFlower[] = { 'P'  'e'  't'  'u'  'n'  'i'  'a'  '\0' }  
+An initialized array of strings would typically be done as follows:
+static const char *myColors[] = {
+"Red"  "Orange"  "Yellow"  "Green"  "Blue"  "Violet" } 
+The initialization of an especially long string can be split across lines of source code as follows 
+static char *longString = "Hello  My name is Rudolph and I work as a reindeer "
+  "around Christmas time up at the North Pole  My boss is a really swell guy "
+" He likes to give everybody gifts " 
+The library functions that are used with strings are discussed in a later chapter 
+Pointers to Functions
+C also allows you to create pointers to functions  
+Pointers to functions can get rather messy  
+Declaring a typedef to a function pointer generally clarifies the code  
+Here's an example that uses a function pointer  and a void * pointer to implement what's known as a callback  
+The DoSomethingNice function invokes a caller supplied function TalkJive with caller data  
+Note that DoSomethingNice really doesn't know anything about what dataPointer refers to 
+typedef int (*MyFunctionType)( int  void *) 	/* a typedef for a function pointer */
+#define THE_BIGGEST 100
+int DoSomethingNice( int aVariable  MyFunctionType aFunction  void *dataPointer
+)
+{
+int rv = 0 
+if (aVariable < THE_BIGGEST) {
+/* invoke function through function pointer (old style) */ rv = (*aFunction)(aVariable  dataPointer ) 
+} else {
+  /* invoke function through function pointer (new style) */ rv = aFunction(aVariable  dataPointer ) 
+}  return rv 
+}
+typedef struct { int	colorSpec  char *phrase  } DataINeed 
+int TalkJive( int myNumber  void *someStuff )
+{
+/* recast void * to pointer type specifically needed for this function */
+DataINeed *myData = someStuff 
+/* talk jive  */ return 5 
+} static DataINeed sillyStuff = { BLUE  "Whatcha talkin 'bout Willis " } 
+/*     */
+DoSomethingNice( 41  &TalkJive  &sillyStuff ) 
+Some versions of C may not require an ampersand preceding the TalkJive argument in the DoSomethingNice call  
+Some implementations may require specifically casting the argument to the MyFunctionType type  even though the function signature exacly matches that of the typedef 
+Function pointers can be useful for implementing a form of polymorphism in C  
+First one declares a structure having as elements function pointers for the various operations to that can be specified polymorphically  
+A second base object structure containing a pointer to the previous structure is also declared  
+A class is defined by extending the second structure with the data specific for the class  and static variable of the type of the first structure  containing the addresses of the functions that are associated with the class  
+This type of polymorphism is used in the standard library when file I/O functions are called 
+A similar mechanism can also be used for implementing a state machine in C 
+A structure is defined which contains function pointers for handling events that may occur within state  and for functions to be invoked upon entry to and exit from the state  
+An instance of this structure corresponds to a state  
+Each state is initialized with pointers to functions appropriate for the state  
+The current state of the state machine is in effect a pointer to one of these states  
+Changing the value of the current state pointer effectively changes the current state  
+When some event occurs  the appropriate function is called through a function pointer in the current state 
+Practical use of function pointers in C
+Function pointers are mainly used to reduce the complexity of switch statement  
+Example with switch statement:
+
+#include <stdio h> int add(int a  int b)  int sub(int a  int b)  int mul(int a  int b)  int div(int a  int b) 
+int main()
+{ int i  result  int a=10  int b=5 
+printf("Enter the value between 0 and 3 : ")  scanf("%d" &i)  switch(i)
+{ case 0: result = add(a b)  break  case 1: result = sub(a b)  break  case 2: result = mul(a b)  break  case 3: result = div(a b)  break 
+}
+} int add(int i  int j)
+{ return (i+j) 
+}
+int sub(int i  int j)
+{ return (i-j) 
+} int mul(int i  int j)
+{ return (i*j) 
+}
+int div(int i  int j)
+{ return (i/j) 
+}
+Without using a switch statement:
+#include <stdio h> int add(int a  int b)  int sub(int a  int b)  int mul(int a  int b)  int div(int a  int b) 
+int (*oper[4])(int a  int b) = {add  sub  mul  div} 
+int main()
+{ int i result  int a=10  int b=5 
+printf("Enter the value between 0 and 3 : ")  scanf("%d" &i)  result = oper[i](a b) 
+}
+int add(int i  int j)
+{ return (i+j) 
+}
+int sub(int i  int j)
+{ return (i-j) 
+}
+int mul(int i  int j)
+{ return (i*j) 
+}
+int div(int i  int j)
+{ return (i/j) 
+}
+Function pointers may be used to create a struct member function:
+typedef struct
+{ int (*open)(void)  void (*close)(void)  int (*reg)(void)  } device 
+int my_device_open(void)
+{
+/*     */
+}
+void my_device_close(void)
+{
+/*     */
+}
+void register_device(void)
+{
+/*     */
+}
+device create(void)
+{ device my_device  my_device open = my_device_open  my_device close = my_device_close  my_device reg = register_device 
+my_device reg()  return my_device 
+}
+Use to implement this pointer (following code must be placed in library) 
+static struct device_data
+{
+/*     here goes data of structure     */
+}  static struct device_data obj 
+typedef struct
+{ int (*open)(void)  void (*close)(void)  int (*reg)(void) 
+} device 
+static struct device_data create_device_data(void)
+{ struct device_data my_device_data  /*     here goes constructor     */
+return my_device_data 
+}
+/* here I omit the my_device_open  my_device_close and register_device functions */
+device create_device(void)
+{ device my_device  my_device open = my_device_open  my_device close = my_device_close  my_device reg = register_device 
+my_device reg()  return my_device 
+}
+Examples of pointer constructs
+Below are some example constructs which may aid in creating your pointer 
+int i  // integer variable 'i' int *p  // pointer 'p' to an integer int a[]  // array 'a' of integers int f()  // function 'f' with return value of type integer int **pp  // pointer 'pp' to a pointer to an integer int (*pa)[]  // pointer 'pa' to an array of integer int (*pf)()  // pointer 'pf' to a function with return value integer int *ap[]  // array 'ap' of pointers to an integer int *fp()  // function 'fp' which returns a pointer to an integer int ***ppp  // pointer 'ppp' to a pointer to a pointer to an integer
+int (**ppa)[] 
+// pointer 'ppa' to a pointer to an array of integers
+int (**ppf)() 
+type integer
+// pointer 'ppf' to a pointer to a function with return value of
+int *(*pap)[] 
+// pointer 'pap' to an array of pointers to an integer
+int *(*pfp)()  to an integer
+// pointer 'pfp' to function with return value of type pointer
+int **app[] 
+values
+// array of pointers 'app' that point to pointers to integer
+int (*apa[])[]  // array of pointers 'apa' to arrays of integers
+int (*apf[])()  // array of pointers 'apf' to functions with return values of
+ type integer int ***fpp() 	// function 'fpp' which returns a pointer to a pointer to a
+pointer to an int
+int (*fpa())[]  // function 'fpa' with return value of a pointer to array of
+integers
+int (*fpf())()  // function 'fpf' with return value of a pointer to function
+which returns an integer
+sizeof
+The sizeof operator is often used to refer to the size of a static array declared earlier in the same function 
+To find the end of an array :
+/* better c - demonstrates one method of fixing the problem */
+#include <stdio h> #include <string h>
+int main(int argc  char *argv[])
+{ char buffer[10] 
+if (argc < 2)
+{ fprintf(stderr  "USAGE: %s string\n"  argv[0])  return 1  } strncpy(buffer  argv[1]  sizeof(buffer))  buffer[sizeof(buffer) - 1] = '\0'  return 0 
+}
+To iterate over every element of an array  use
+#define NUM_ELEM(x) (sizeof (x) / sizeof (*(x)))
+for( i = 0  i < NUM_ELEM(array)  i++ )
+{
+/* do something with array[i] */
+ 
+}
+Note that the sizeof operator only works on things defined earlier in the same function  
+The compiler replaces it with some fixed constant number 
+In this case  the buffer was declared as an array of 10 char's earlier in the same function  and the compiler replaces sizeof(buffer)with the number 10 at compile time (equivalent to us hard-coding 10 into the code in place of sizeof(buffer))  
+The information about the length of buffer is not actually stored anywhere in memory (unless we keep track of it separately) and cannot be programmatically obtained at run time from the array/pointer itself 
+Often a function needs to know the size of an array it was given -- an array defined in some other function  For example 
+/* broken c - demonstrates a flaw */
+#include <stdio h>
+#include <string h>
+#define NUM_ELEM(x) (sizeof (x) / sizeof (*(x)))
+int sum( int input_array[] ){
+int sum_so_far = 0  int i 
+for( i = 0  i < NUM_ELEM(input_array)  i++ ) // WON'T WORK -- input_array
+wasn't defined in this function 
+{ sum_so_far += input_array[i] 
+} 
+return( sum_so_far ) 
+}
+int main(int argc  char *argv[])
+{
+int left_array[] = { 1  2  3 } 
+int right_array[] = { 10  9  8  7  6  5  4  3  2  1 }  int the_sum = sum( left_array ) 
+printf( "the sum of left_array is: %d"  the_sum )  the_sum = sum( right_array ) 
+printf( "the sum of right_array is: %d"  the_sum ) 
+  return 0  }
+Unfortunately  (in C and C++) the length of the array cannot be obtained from an array passed in at run time  because (as mentioned above) the size of an array is not stored anywhere  
+The compiler always replaces sizeof with a constant  
+This sum() routine needs to handle more than just one constant length of an array 
+There are some common ways to work around this fact:
+• Write the function to require  for each array parameter  a ”length” parameter (which has type ”size_t”)  
+• (Typically we use sizeof at the point where this function is called) 
+• Use of a convention  such as a null-terminated string to mark the end of the array 
+• Instead of passing raw arrays  pass a structure that includes the length of the array (such as ” length”) as well as the array (or a pointer to the first element)  similar to the string or vector classes in C++ 
+/* fixed c - demonstrates one work-around */
+#include <stdio h>
+#include <string h>
+#define NUM_ELEM(x) (sizeof (x) / sizeof (*(x)))
+int sum( int input_array[]  size_t length ){
+int sum_so_far = 0  int i 
+for( i = 0  i < length  i++ )
+{ sum_so_far += input_array[i] 
+} 
+return( sum_so_far ) 
+}
+int main(int argc  char *argv[])
+{
+int left_array[] = { 1  2  3  4 } 
+int right_array[] = { 10  9  8  7  6  5  4  3  2  1 }  int the_sum = sum( left_array  NUM_ELEM(left_array) )  // works here  because
+left_array is defined in this function
+printf( "the sum of left_array is: %d"  the_sum )  the_sum = sum( right_array  NUM_ELEM(right_array) )  // works here  because
+right_array is defined in this function
+printf( "the sum of right_array is: %d"  the_sum ) 
+  return 0  }
+It's worth mentioning that sizeof operator has two variations: sizeof (type) (for instance: sizeof (int) or sizeof (struct some_structure)) and sizeof expression (for instance: sizeof some_variable some_field or sizeof 1) 
+Memory management
+In C  you have already considered creating variables for use in the program  
+You have created some arrays for use  but you may have already noticed some limitations:
+• the size of the array must be known beforehand
+• the size of the array cannot be changed in the duration of your program
+Dynamic memory allocation in C is a way of circumventing these problems 
+The malloc function
+#include <stdlib h>
+void *calloc(size_t nmemb  size_t size)  void free(void *ptr)  void *malloc(size_t size)  void *realloc(void *ptr  size_t size) 
+The C function malloc is the means of implementing dynamic memory allocation  
+It is defined in stdlib h or malloc h  depending on what operating system you may be using  
+Malloc h contains only the definitions for the memory allocation functions and not the rest of the other functions defined in stdlib h  
+Usually you will not need to be so specific in your program  and if both are supported  you should use <stdlib h>  since that is ANSI C  and what we will use here 
+The corresponding call to release allocated memory back to the operating system is free 
+When dynamically allocated memory is no longer needed  free should be called to release it back to the memory pool  
+Overwriting a pointer that points to dynamically allocated memory can result in that data becoming inaccessible  
+If this happens frequently  eventually the operating system will no longer be able to allocate more memory for the process  
+Once the process exits  the operating system is able to free all dynamically allocated memory associated with the process 
+Let's look at how dynamic memory allocation can be used for arrays 
+Normally when we wish to create an array we use a declaration such as
+int array[10] 
+Recall array can be considered a pointer which we use as an array  
+We specify the length of this array is 10 ints  After array[0]  nine other integers have space to be stored consecutively 
+Sometimes it is not known at the time the program is written how much memory will be needed for some data  
+In this case we would want to dynamically allocate required memory after the program has started executing  
+To do this we only need to declare a pointer  and invoke malloc when we wish to make space for the elements in our array  or  we can tell malloc to make space when we first initialize the array  Either way is acceptable and useful 
+We also need to know how much an int takes up in memory in order to make room for it  fortunately this is not difficult  we can use C's builtin sizeof operator  
+For example  if sizeof(int) yields 4  then one int takes up 4 bytes  Naturally  2*sizeof(int) is how much memory we need for 2 ints  and so on 
+So how do we malloc an array of ten ints like before  If we wish to declare and make room in one hit  we can simply say
+int *array = malloc(10*sizeof(int)) 
+We only need to declare the pointer  malloc gives us some space to store the 10 ints  and returns the pointer to the first element  which is assigned to that pointer 
+Important note  malloc does not initialize the array  this means that the array may contain random or unexpected values  
+Like creating arrays without dynamic allocation  the programmer must initialize the array with sensible values before using it  
+Make sure you do so  too  
+(See later the function memset for a simple method )
+It is not necessary to immediately call malloc after declaring a pointer for the allocated memory  Often a number of statements exist between the declaration and the call to malloc  as follows:
+int *array = NULL  printf("Hello World   ")  /* more statements */
+array = malloc(10*sizeof(int))  /* delayed allocation */ /* use the array */
+Error checking
+When we want to use malloc  we have to be mindful that the pool of memory available to the programmer is finite  
+As such  we can conceivably run out of memory  
+In this case  malloc will return NULL  
+In order to stop the program crashing from having no more memory to use  one should always check that malloc has not returned NULL before attempting to use the memory  we can do this by
+int *pt = malloc(3 * sizeof(int))  if(pt == NULL)
+{ fprintf(stderr  "Out of memory  exiting\n")  exit(1) 
+}
+Of course  suddenly quitting as in the above example is not always appropriate  and depends on the problem you are trying to solve and the architecture you are programming for  
+For example  if the program is a small  non critical application that's running on a desktop quitting may be appropriate  
+However if the program is some type of editor running on a desktop  you may want to give the operator the option of saving their tediously entered information instead of just exiting the program 
+A memory allocation failure in an embedded processor  such as might be in a washing machine  could cause an automatic reset of The calloc function the machine  
+For this reason  many embedded systems designers avoid dynamic memory allocation altogether 
+The calloc function
+The calloc function allocates space for an array of items and initializes the memory to zeros  
+The call mArray = calloc( count  sizeof(struct V)) allocates count objects  each of whose size is sufficient to contain an instance of the structure struct V  
+The space is initialized to all bits zero  The function returns either a pointer to the allocated memory or  if the allocation fails  NULL 
+The realloc function
+void * realloc ( void * ptr  size_t size ) 
+The realloc function changes the size of the object pointed to by ptr to the size specified by size  
+The contents of the object shall be unchanged up to the lesser of the new and old sizes  
+If the new size is larger  the value of the newly allocated portion of the object is indeterminate  
+If ptr is a null pointer  the realloc function behaves like the malloc function for the specified size  
+Otherwise  if ptr does not match a pointer earlier returned by the calloc  malloc  or realloc function  or if the space has been deallocated by a call to the free or realloc function  the behavior is undefined  
+If the space cannot be allocated  the object pointed to by ptr is unchanged  
+If size is zero and ptr is not a null pointer  the object pointed to is freed  
+The realloc function returns either a null pointer or a pointer to the possibly moved allocated object 
+The free function
+Memory that has been allocated using malloc  realloc  or calloc must be released back to the system memory pool once it is no longer needed  
+This is done to avoid perpetually allocating more and more memory  which could result in an eventual memory allocation failure  
+Memory that is not released with free is however released when the current program terminates on most operating systems  
+Calls to free are as in the following example 
+int *myStuff = malloc( 20 * sizeof(int))  if (myStuff  = NULL)
+{
+/* more statements here */ /* time to release myStuff */ free( myStuff ) 
+}
+free with recursive data structures
+It should be noted that free is neither intelligent nor recursive  
+The following code that depends on the recursive application of free to the internal variables of a struct does not work 
+typedef struct BSTNode
+{ int value  struct BSTNode* left  struct BSTNode* right 
+} BSTNode 
+// Later:    
+BSTNode* temp = (BSTNode*) calloc(1  sizeof(BSTNode))  temp->left = (BSTNode*) calloc(1  sizeof(BSTNode)) 
+// Later:    
+free(temp)  // WRONG  don't do this 
+The statement ”free(temp) ” will not free temp->left  causing a memory leak  
+The correct way to free the allocated memory is as follows 
+free(temp->left)  free(temp->right)  free(temp) 
+Because C does not have a garbage collector  C programmers are responsible for making sure there is a free() exactly once for each time there is a malloc()  
+If a tree has been allocated one node at a time  then it needs to be freed one node at a time 
+Don't free undefined pointers
+Furthermore  using free when the pointer in question was never allocated in the first place often crashes or leads to mysterious bugs further along 
+To avoid this problem  always initialize pointers when they are declared  
+Either use malloc at the point they are declared (as in most examples in this chapter)  or set them to NULL when they are declared (as in the ”delayed allocation” example in this chapter)  
+Write constructor/destructor functions
+One way to get memory initialization and destruction right is to imitate object-oriented programming  
+In this paradigm  objects are constructed after raw memory is allocated for them  live their lives  and when it is time for them to be destructed  a special function called a destructor destroys the object's innards before the object itself is destroyed 
+For example:
+#include <stdlib h> /* need malloc and friends */
+/* this is the type of object we have  with a single int member */ typedef struct WIDGET_T {
+int member 
+} WIDGET_T 
+/* functions that deal with WIDGET_T */
+/* constructor function */
+void
+WIDGETctor (WIDGET_T *this  int x)
+{ this->member = x 
+}
+/* destructor function */ void
+WIDGETdtor (WIDGET_T *this)
+{
+/* In this case  I really don't have to do anything  but if WIDGET_T had internal pointers  the objects they point to would be destroyed here  */
+this->member = 0 
+}
+/* create function - this function returns a new WIDGET_T */
+WIDGET_T *
+WIDGETcreate (int m) {
+WIDGET_T *x = 0 
+x = malloc (sizeof (WIDGET_T))  if (x == 0)
+  abort ()  /* no memory */ WIDGETctor (x  m)  return x 
+}
+/* destroy function - calls the destructor  then frees the object */ void
+WIDGETdestroy (WIDGET_T *this)
+{
+WIDGETdtor (this)  free (this) 
+}
+/* END OF CODE */
+
+Strings
+A string in C is merely an array of characters  
+The length of a string is determined by a terminating null character: '\0'  
+So  a string with the contents  say  "abc" has four characters: 'a'  'b'  'c'  and the terminating null character 
+The terminating null character has the value zero 
+Syntax
+In C  string constants (literals) are surrounded by double quotes (")  e g  "Hello world " and are compiled to an array of the specified char values with an additional null terminating character (0-valued) code to mark the end of the string  
+The type of a string constant is char [] 
+backslash escapes
+String literals may not directly in the source code contain embedded newlines or other control characters  or some other characters of special meaning in string 
+To include such characters in a string  the backslash escapes may be used  like this:
+Wide character strings
+C supports wide character strings  defined as arrays of the type wchar_t  16-bit (at least) values  They are written with an L before the string like this
+wchar_t *p = L"Helloworld " 
+This feature allows strings where more than 256 different possible characters are needed (although also variable length char strings can be used)  
+They end with a zero-valued wchar_t  
+These strings are not supported by the <string h> functions  
+Instead they have their own functions  declared in <wchar h> 
+Character encodings
+What character encoding the char and wchar_t represent is not specified by the C standard  except that the value 0x00 and 0x0000 specify the end of the string and not a character  
+It is the input and output code which are directly affected by the character encoding  
+Other code should not be too affected  
+The editor should also be able to handle the encoding if strings shall be able to written in the source code 
+There are three major types of encodings:
+• One byte per character  Normally based on ASCII  
+• There is a limit of 255 different characters plus the zero termination character 
+• Variable length char strings  which allows many more than 255 different characters  
+• Such strings are written as normal char-based arrays  
+• These encodings are normally ASCII based and examples are UTF-8 or Shift JIS 
+• Wide character strings  
+• They are arrays of wchar_t values 
+•  UTF-16 is the most common such encoding  and it is also variable-length  meaning that a character can be two wchar_t 
+The <string h> Standard Header
+Because programmers find raw strings cumbersome to deal with  they wrote the code in the <string h> library  
+It represents not a concerted design effort but rather the accretion of contributions made by various authors over a span of years 
+First  three types of functions exist in the string library:
+• the mem functions manipulate sequences of arbitrary characters without regard to the null character 
+• the str functions manipulate null-terminated sequences of characters 
+• the strn functions manipulate sequences of non-null characters 
+The more commonly-used string functions
+The nine most commonly used functions in the string library are:
+• strcat - concatenate two strings
+• strchr - string scanning operation
+• strcmp - compare two strings
+• strcpy - copy a string
+• strlen - get string length
+• strncat - concatenate one string with part of another
+• strncmp - compare parts of two strings
+• strncpy - copy part of a string
+• strrchr - string scanning operation
+The strcat function char *strcat(char * restrict2 s1  const char * restrict s2) 
+Some people recommend using strncat() or strlcat() instead of strcat  in order to avoid buffer overflow 
+The strcat() function shall append a copy of the string pointed to by s2 (including the terminating null byte) to the end of the string pointed to by s1  
+The initial byte of s2 overwrites the null byte at the end of s1  
+If copying takes place between objects that overlap  the behavior is undefined  
+The function returns s1 
+This function is used to attach one string to the end of another string  
+It is imperative that the first string (s1) have the space needed to store both strings 
+Example:
+#include <stdio h> #include <string h>    
+static const char *colors[] =
+{"Red" "Orange" "Yellow" "Green" "Blue" "Purple" }  static const char *widths[] = {"Thin" "Medium" "Thick" "Bold" }     
+char penText[20]     
+int penColor = 3  penThickness = 2  strcpy(penText  colors[penColor])  strcat(penText  widths[penThickness])  printf("My pen is %s\n"  penText)  // prints 'My pen is GreenThick'
+Before calling strcat()  the destination must currently contain a null terminated string or the first character must have been initialized with the null character (e g  penText[0] = '\0' ) 
+The following is a public-domain implementation of strcat:
+#include <string h>
+/* strcat */
+char *(strcat)(char *restrict s1  const char *restrict s2)
+{
+char *s = s1 
+/* Move s so that it points to the end of s1  */
+while (*s  = '\0') s++ 
+   /* Copy the contents of s2 into the space at the end of s1  */ strcpy(s  s2)  return s1  }
+The strchr function char *strchr(const char *s  int c) 
+The strchr() function shall locate the first occurrence of c (converted to a char) in the string pointed to by s  
+The terminating null byte is considered to be part of the string  
+The function returns the location of the found character  or a null pointer if the character was not found 
+This function is used to find certain characters in strings 
+At one point in history  this function was named index  
+The strchr name  however cryptic  fits the general pattern for naming 
+The following is a public-domain implementation of strchr:
+#include <string h> /* strchr */
+char *(strchr)(const char *s  int c)
+{
+char ch = c 
+/* Scan s for the character  When this loop is finished  s will either point to the end of the string or the character we were looking for  */
+while (*s  = '\0' && *s  = ch) s++ 
+return (*s == ch)   (char *) s : NULL 
+}
+The strcmp function int strcmp(const char *s1  const char *s2) 
+A rudimentary form of string comparison is done with the strcmp() function  
+It takes two strings as arguments and returns a value less than zero if the first is lexographically less than the second  a value greater than zero if the first is lexographically greater than the second  or zero if the two strings are equal  
+The comparison is done by comparing the coded (ascii) value of the characters  character by character 
+This simple type of string comparison is nowadays generally considered unacceptable when sorting lists of strings  
+More advanced algorithms exist that are capable of producing lists in dictionary sorted order 
+They can also fix problems such as strcmp() considering the string ”Alpha2” greater than ”Alpha12”  (In the previous example  ”Alpha2” compares greater than ”Alpha12” because '2' comes after '1' in the character set ) 
+What we're saying is  don't use this strcmp() alone for general string sorting in any commercial or professional code 
+The strcmp() function shall compare the string pointed to by s1 to the string pointed to by s2  
+The sign of a non-zero return value shall be determined by the sign of the difference between the values of the first pair of bytes (both interpreted as type unsigned char) that differ in the strings being compared  
+Upon completion  strcmp() shall return an integer greater than  equal to  or less than 0  if the string pointed to by s1 is greater than  equal to  or less than the string pointed to by s2  respectively 
+Since comparing pointers by themselves is not practically useful unless one is comparing pointers within the same array  this function lexically compares the strings that two pointers point to 
+This function is useful in comparisons  e g 
+if (strcmp(s  "whatever") == 0) /* do something */  
+The collating sequence used by strcmp() is equivalent to the machine's native character set  The only guarantee about the order is that the digits from '0' to '9' are in consecutive order 
+The following is a public-domain implementation of strcmp:
+#include <string h> /* strcmp */
+int (strcmp)(const char *s1  const char *s2)
+{ unsigned char uc1  uc2 
+
+/* Move s1 and s2 to the first differing characters in each string  or the ends of the strings if they are identical  */
+while (*s1  = '\0' && *s1 == *s2) { s1++  s2++ 
+}
+/* Compare the characters as unsigned char and return the difference  */ uc1 = (*(unsigned char *) s1)  uc2 = (*(unsigned char *) s2) 
+return ((uc1 < uc2)   -1 : (uc1 > uc2)) 
+}
+The strcpy function char *strcpy(char *restrict s1  const char *restrict s2) 
+Some people recommend always using strncpy() instead of strcpy  to avoid buffer overflow 
+The strcpy() function shall copy the C string pointed to by s2 (including the terminating null byte) into the array pointed to by s1  
+If copying takes place between objects that overlap  the behavior is undefined  
+The function returns s1  
+There is no value used to indicate an error: if the arguments to strcpy() are correct  and the destination buffer is large enough  the function will never fail 
+Example:
+#include <stdio h>
+#include <string h>
+/*     */
+static const char *penType="round" 
+/*     */
+char penText[20]  /*     */
+The following is a public-domain implementation of strcpy:
+#include <string h> /* strcpy */
+char *(strcpy)(char *restrict s1  const char *restrict s2)
+{ char *dst = s1  const char *src = s2  /* Do the copying in a loop  */
+while ((*dst++ = *src++)  = '\0')
+	 	/* The body of this loop is left empty  */
+/* Return the destination string  */
+   return s1  }
+The strlen function size_t strlen(const char *s) 
+The strlen() function shall compute the number of bytes in the string to which s points  not including the terminating null byte  
+It returns the number of bytes in the string  
+No value is used to indicate an error 
+The following is a public-domain implementation of strlen:
+#include <string h> /* strlen */
+size_t (strlen)(const char *s)
+{
+const char *p = s  /* Loop over the data in s  */
+while (*p  = '\0') p++ 
+   return (size_t)(p - s)  }
+The strncat function char *strncat(char *restrict s1  const char *restrict s2  size_t n) 
+The strncat() function shall append not more than n bytes (a null byte and bytes that follow it are not appended) from the array pointed to by s2 to the end of the string pointed to by s1 
+The initial byte of s2 overwrites the null byte at the end of s1  
+A terminating null byte is always appended to the result  If copying takes place between objects that overlap  the behavior is undefined  
+The function returns s1 
+The following is a public-domain implementation of strncat:
+#include <string h> /* strncat */
+char *(strncat)(char *restrict s1  const char *restrict s2  size_t n)
+{
+char *s = s1 
+/* Loop over the data in s1  */
+while (*s  = '\0') s++ 
+/* s now points to s1's trailing null character  now copy up to n bytes from s2 into s stopping if a null character is encountered in s2 
+It is not safe to use strncpy here since it copies EXACTLY n
+characters  NULL padding if necessary  */
+while (n  = 0 && (*s = *s2++)  = '\0') { n--  s++ 
+} if (*s  = '\0')
+      *s = '\0'  return s1  }
+The strncmp function int strncmp(const char *s1  const char *s2  size_t n) 
+The strncmp() function shall compare not more than n bytes (bytes that follow a null byte are not compared) from the array pointed to by s1 to the array pointed to by s2 
+The sign of a non-zero return value is determined by the sign of the difference between the values of the first pair of bytes (both interpreted as type unsigned char) that differ in the strings being compared  
+See strcmp for an explanation of the return value 
+This function is useful in comparisons  as the strcmp function is 
+The following is a public-domain implementation of strncmp:
+#include <string h> /* strncmp */
+int (strncmp)(const char *s1  const char *s2  size_t n)
+{ unsigned char uc1  uc2 
+
+/* Nothing to compare  Return zero  */
+if (n == 0)
+return 0 
+/* Loop  comparing bytes  */ while (n-- > 0 && *s1 == *s2) {
+/* If we've run out of bytes or hit a null  return zero since we already know *s1 == *s2  */
+if (n == 0 || *s1 == '\0') return 0  s1++  s2++ 
+}
+uc1 = (*(unsigned char *) s1)  uc2 = (*(unsigned char *) s2) 
+return ((uc1 < uc2)   -1 : (uc1 > uc2)) 
+}
+The strncpy function char *strncpy(char *restrict s1  const char *restrict s2  size_t n) 
+The strncpy() function shall copy not more than n bytes (bytes that follow a null byte are not copied) from the array pointed to by s2 to the array pointed to by s1  
+If copying takes place between objects that overlap  the behavior is undefined  
+If the array pointed to by s2 is a string that is shorter than n bytes  null bytes shall be appended to the copy in the array pointed to by s1  until n bytes in all are written  
+The function shall return s1  no return value is reserved to indicate an error 
+It is possible that the function will not return a null-terminated string  which happens if the s2 string is longer than n bytes 
+The following is a public-domain version of strncpy:
+#include <string h> /* strncpy */
+char *(strncpy)(char *restrict s1  const char *restrict s2  size_t n)
+{ char *dst = s1  const char *src = s2  /* Copy bytes  one at a time  */ while (n > 0) { n-- 
+if ((*dst++ = *src++) == '\0') {
+/* If we get here  we found a null character at the end of s2  so use memset to put null bytes at the end of
+s1  */
+memset(dst  '\0'  n) 
+break 
+}
+   } return s1  }
+The strrchr function char *strrchr(const char *s  int c) 
+The strrchr function is similar to the strchr function  except that strrchr returns a pointer to the last occurrence of c within s instead of the first 
+The strrchr() function shall locate the last occurrence of c (converted to a char) in the string pointed to by s  
+The terminating null byte is considered to be part of the string  
+Its return value is similar to strchr's return value 
+At one point in history  this function was named rindex  
+The strrchr name  however cryptic  fits the general pattern for naming 
+The following is a public-domain implementation of strrchr:
+#include <string h> /* strrchr */
+char *(strrchr)(const char *s  int c)
+{ const char *last = NULL 
+/* If the character we're looking for is the terminating null  we just need to look for that character as there's only one
+of them in the string  */
+if (c == '\0') return strchr(s  c) 
+/* Loop through  finding the last match before hitting NULL  */ while ((s = strchr(s  c))  = NULL) { last = s 
+s++ 
+}
+   return (char *) last  }
+The less commonly-used string functions
+The less-used functions are:
+• memchr - Find a byte in memory
+• memcmp - Compare bytes in memory
+• memcpy - Copy bytes in memory
+• memmove - Copy bytes in memory with overlapping areas
+• memset - Set bytes in memory
+• strcoll - Compare bytes according to a locale-specific collating sequence
+• strcspn - Get the length of a complementary substring
+• strerror - Get error message
+• strpbrk - Scan a string for a byte
+• strspn - Get the length of a substring
+• strstr - Find a substring
+• strtok - Split a string into tokens
+• strxfrm - Transform string
+Copying functions
+The memcpy function void *memcpy(void * restrict s1  const void * restrict s2  size_t n) 
+The memcpy() function shall copy n bytes from the object pointed to by s2 into the object pointed to by s1  
+If copying takes place between objects that overlap  the behavior is undefined  
+The function returns s1 
+Because the function does not have to worry about overlap  it can do the simplest copy it can 
+The following is a public-domain implementation of memcpy:
+#include <string h> /* memcpy */
+void *(memcpy)(void * restrict s1  const void * restrict s2  size_t n)
+{ char *dst = s1  const char *src = s2  /* Loop and copy  */ while (n--  = 0)
+   *dst++ = *src++  return s1 
+}
+The memmove function void *memmove(void *s1  const void *s2  size_t n) 
+The memmove() function shall copy n bytes from the object pointed to by s2 into the object pointed to by s1  
+Copying takes place as if the n bytes from the object pointed to by s2 are first copied into a temporary array of n bytes that does not overlap the objects pointed to by s1 and s2  and then the n bytes from the temporary array are copied into the object pointed to by s1  
+The function returns the value of s1 
+The easy way to implement this without using a temporary array is to check for a condition that would prevent an ascending copy  and if found  do a descending copy 
+The following is a public-domain  though not completely portable  implementation of memmove:
+#include <string h> /* memmove */
+void *(memmove)(void *s1  const void *s2  size_t n)
+{
+/* note: these don't have to point to unsigned chars */ char *p1 = s1  const char *p2 = s2 
+/* test for overlap that prevents an ascending copy */ if (p2 < p1 && p1 < p2 + n) { /* do a descending copy */
+p2 += n  p1 += n  while (n--  = 0)
+*--p1 = *--p2 
+} else while (n--  = 0)
+        *p1++ = *p2++  return s1  }
+Comparison functions
+The memcmp function int memcmp(const void *s1  const void *s2  size_t n) 
+The memcmp() function shall compare the first n bytes (each interpreted as unsigned char) of the object pointed to by s1 to the first n bytes of the object pointed to by s2  
+The sign of a non-zero return value shall be determined by the sign of the difference between the values of the first pair of bytes (both interpreted as type unsigned char) that differ in the objects being compared 
+The following is a public-domain implementation of memcmp:
+#include <string h> /* memcmp */
+int (memcmp)(const void *s1  const void *s2  size_t n)
+{ const unsigned char *us1 = (const unsigned char *) s1  const unsigned char *us2 = (const unsigned char *) s2 
+while (n--  = 0) { if (*us1  = *us2) return (*us1 < *us2)   -1 : +1 
+us1++  us2++ 
+}
+   return 0  }
+The strcoll and strxfrm functions int strcoll(const char *s1  const char *s2) 
+size_t strxfrm(char *s1  const char *s2  size_t n) 
+The ANSI C Standard specifies two locale-specific comparison functions 
+The strcoll function compares the string pointed to by s1 to the string pointed to by s2  both interpreted as appropriate to the LC_COLLATE category of the current locale  
+The return value is similar to strcmp 
+The strxfrm function transforms the string pointed to by s2 and places the resulting string into the array pointed to by s1  
+The transformation is such that if the strcmp function is applied to the two transformed strings  it returns a value greater than  equal to  or less than zero  corresponding to the result of the strcoll function applied to the same two original strings  
+No more than n characters are placed into the resulting array pointed to by s1  including the terminating null character  
+If n is zero  s1 is permitted to be a null pointer  
+If copying takes place between objects that overlap  the behavior is undefined  
+The function returns the length of the transformed string 
+These functions are rarely used and nontrivial to code  so there is no code for this section 
+Search functions
+The memchr function void *memchr(const void *s  int c  size_t n) 
+The memchr() function shall locate the first occurrence of c (converted to an unsigned char) in the initial n bytes (each interpreted as unsigned char) of the object pointed to by s  
+If c is not found  memchr returns a null pointer 
+The following is a public-domain implementation of memchr:
+#include <string h> /* memchr */ void *(memchr)(const void *s  int c  size_t n)
+{ const unsigned char *src = s  unsigned char uc = c  while (n--  = 0) { if (*src == uc) return (void *) src 
+src++ 
+   } return NULL  }
+The strcspn  strpbrk  and strspn functions size_t strcspn(const char *s1  const char *s2)  char *strpbrk(const char *s1  const char *s2)  size_t strspn(const char *s1  const char *s2) 
+The strcspn function computes the length of the maximum initial segment of the string pointed to by s1 which consists entirely of characters not from the string pointed to by s2 
+The strpbrk function locates the first occurrence in the string pointed to by s1 of any character from the string pointed to by s2  returning a pointer to that character or a null pointer if not found 
+The strspn function computes the length of the maximum initial segment of the string pointed to by s1 which consists entirely of characters from the string pointed to by s2 
+All of these functions are similar except in the test and the return value 
+The following are public-domain implementations of strcspn  strpbrk  and strspn:
+#include <string h> /* strcspn */
+size_t (strcspn)(const char *s1  const char *s2)
+{ const char *sc1 
+for (sc1 = s1  *sc1  = '\0'  sc1++) if (strchr(s2  *sc1)  = NULL) return (sc1 - s1) 
+	return sc1 - s1 	/* terminating nulls match */
+}
+#include <string h> /* strpbrk */
+char *(strpbrk)(const char *s1  const char *s2)
+{ const char *sc1 
+for (sc1 = s1  *sc1  = '\0'  sc1++) if (strchr(s2  *sc1)  = NULL) return (char *)sc1 
+	return NULL 	/* terminating nulls match */
+}
+#include <string h> /* strspn */
+size_t (strspn)(const char *s1  const char *s2)
+{ const char *sc1 
+for (sc1 = s1  *sc1  = '\0'  sc1++) if (strchr(s2  *sc1) == NULL) return (sc1 - s1) 
+	return sc1 - s1 	/* terminating nulls don't match */
+}
+The strstr function char *strstr(const char *haystack  const char *needle) 
+The strstr() function shall locate the first occurrence in the string pointed to by haystack of the sequence of bytes (excluding the terminating null byte) in the string pointed to by needle  
+The function returns the pointer to the matching string in haystack or a null pointer if a match is not found  
+If needle is an empty string  the function returns haystack 
+The following is a public-domain implementation of strstr:
+#include <string h>
+/* strstr */
+char *(strstr)(const char *haystack  const char *needle)
+{ size_t needlelen 
+/* Check for the null needle case  */
+if (*needle == '\0') return (char *) haystack 
+needlelen = strlen(needle) 
+for (  (haystack = strchr(haystack  *needle))  = NULL  haystack++) if (memcmp(haystack  needle  needlelen) == 0) return (char *) haystack 
+   return NULL  }
+The strtok function char *strtok(char *restrict s1  const char *restrict delimiters) 
+A sequence of calls to strtok() breaks the string pointed to by s1 into a sequence of tokens  each of which is delimited by a byte from the string pointed to by delimiters  
+The first call in the sequence has s1 as its first argument  and is followed by calls with a null pointer as their first argument  
+The separator string pointed to by delimiters may be different from call to call 
+The first call in the sequence searches the string pointed to by s1 for the first byte that is not contained in the current separator string pointed to by delimiters  
+If no such byte is found  then there are no tokens in the string pointed to by s1 and strtok() shall return a null pointer  
+If such a byte is found  it is the start of the first token 
+The strtok() function then searches from there for a byte (or multiple  consecutive bytes) that is contained in the current separator string  
+If no such byte is found  the current token extends to the end of the string pointed to by s1  and subsequent searches for a token shall return a null pointer  
+If such a byte is found  it is overwritten by a null byte  which terminates the current token  
+The strtok() function saves a pointer to the following byte  from which the next search for a token shall start 
+Each subsequent call  with a null pointer as the value of the first argument  starts searching from the saved pointer and behaves as described above 
+The strtok() function need not be reentrant  A function that is not required to be reentrant is not required to be thread-safe 
+Because the strtok() function must save state between calls  and you could not have two tokenizers going at the same time  the Single Unix Standard defined a similar function  strtok_r()  that does not need to save state  Its prototype is this:
+char *strtok_r(char *s  const char *delimiters  char **lasts) 
+The strtok_r() function considers the null-terminated string s as a sequence of zero or more text tokens separated by spans of one or more characters from the separator string delimiters  
+The argument lasts points to a user-provided pointer which points to stored information necessary for strtok_r() to continue scanning the same string 
+In the first call to strtok_r()  s points to a null-terminated string  delimiters to a nullterminated string of separator characters  and the value pointed to by lasts is ignored  
+The strtok_r() function shall return a pointer to the first character of the first token  write a null character into s immediately following the returned token  and update the pointer to which lasts points 
+In subsequent calls  s is a null pointer and lasts shall be unchanged from the previous call so that subsequent calls shall move through the string s  returning successive tokens until no tokens remain  
+The separator string delimiters may be different from call to call  
+When no token remains in s  a NULL pointer shall be returned 
+The following public-domain code for strtok and strtok_r codes the former as a special case of the latter:
+#include <string h> /* strtok_r */
+char *(strtok_r)(char *s  const char *delimiters  char **lasts)
+{ char *sbegin  *send 
+sbegin = s   s : *lasts 
+sbegin += strspn(sbegin  delimiters) 
+if (*sbegin == '\0') { *lasts = ""  return NULL 
+}
+send = sbegin + strcspn(sbegin  delimiters)  if (*send  = '\0')
+   *send++ = '\0'  *lasts = send  return sbegin 
+}
+/* strtok */
+char *(strtok)(char *restrict s1  const char *restrict delimiters)
+{ static char *ssave = "" 
+   return strtok_r(s1  delimiters  &ssave)  }
+Miscellaneous functions
+These functions do not fit into one of the above categories 
+The memset function void *memset(void *s  int c  size_t n) 
+The memset() function converts c into unsigned char  then stores the character into the first n bytes of memory pointed to by s 
+The following is a public-domain implementation of memset:
+#include <string h> /* memset */
+void *(memset)(void *s  int c  size_t n)
+{ unsigned char *us = s  unsigned char uc = c  while (n--  = 0)
+   *us++ = uc  return s 
+}
+Examples
+The strerror function char *strerror(int errorcode) 
+This function returns a locale-specific error message corresponding to the parameter  
+Depending on the circumstances  this function could be trivial to implement  but this author will not do that as it varies 
+The Single Unix System Version 3 has a variant  strerror_r  with this prototype:
+int strerror_r(int errcode  char *buf  size_t buflen) 
+This function stores the message in buf  which has a length of size buflen 
+Examples
+To determine the number of characters in a string  the strlen() function is used:
+#include <stdio h> #include <string h>    
+int length  length2  char *turkey  static char *flower= "begonia"  static char *gemstone="ruby " 
+length = strlen(flower) 
+printf("Length = %d\n"  length)  // prints 'Length = 7' length2 = strlen(gemstone) 
+turkey = malloc( length + length2 + 1)  if (turkey) {
+  strcpy( turkey  gemstone)  strcat( turkey  flower)  printf( "%s\n"  turkey)  // prints 'ruby begonia' free( turkey )  }
+Note that the amount of memory allocated for 'turkey' is one plus the sum of the lengths of the strings to be concatenated  
+This is for the terminating null character  which is not counted in the lengths of the strings 
+Complex types
+In the chapter Variables we looked at the primitive data types 
+However advanced data types allow us greater flexibility in managing data in our program  and also some novel uses 
+Data structures
+A data structure (”struct”) contains multiple pieces of data  
+Each piece of data (called a ”member”) can be accessed by the name of the variable  followed by a ' '  then the name of the member  
+(Another way to access a member is using the member operator '->')  
+The member variables of a struct can be of any data type and can even be an array or a pointer 
+27 1 1 Structs
+A data structure contains multiple pieces of data  
+One defines a data structure using the struct keyword  For example 
+struct mystruct { int int_member  double double_member  char string_member[25] 
+} variable 
+variable is an instance of mystruct  
+You can omit it from the end of the struct declaration and declare it later using:
+struct mystruct variable 
+It is often common practice to make a type synonym so we don't have to type ”struct mystruct” all the time  
+C allows us the possibility to do so using a typedef statement  which aliases a type:
+typedef struct {    
+} Mystruct 
+The struct itself has no name (by the absence of a name on the first line)  but it is aliased as Mystruct  
+Then you can use
+Mystruct structure 
+Note that it is commonplace  and good style to capitalize the first letter of a type synonym  However in the actual definition we need to give the struct a tag so we can refer to it: we may have a recursive data structure of some kind  
+For trees or chained lists  we need a pointer to the same data type in the struct  
+During compilation  the type synonym is not known to the compiler and there will be an error  
+To avoid this  it is necessary to let the compiler know the name right from the start (Note that the struct keyword is used only inside the structure  
+After the declaration  the compiler knows that the type synonym refers to a struct):
+typedef struct Mystruct {    
+   struct Mystruct *pMystruct } Mystruct 
+Unions
+The definition of a union is similar to that of a struct  
+The difference between the two is that in a struct  the members occupy different areas of memory  but in a union  the members occupy the same area of memory  
+Thus  in the following type  for example:
+union { int i 
+double d 
+} u 
+The programmer can access either u i or u d  but not both at the same time  Since u i and u d occupy the same area of memory  modifying one modifies the value of the other  sometimes in unpredictable ways 
+The size of a union is the size of its largest member 
+Enumerations
+Enumerations are artificial data types representing associations between labels and integers  Unlike structs or unions  they are not composed of other data types  
+An example declaration:
+enum color { red  orange  yellow  green  cyan  blue  purple 
+} crayon_color 
+In the example above  red equals 0  orange equals 1      and so each subsequent label is by 1 larger that the previous one  
+It is possible to assign values to labels within the integer range  but they must be constant 
+Similar declaration syntax that applies for structs and unions also applies for enums  
+Also  one normally doesn't need to be concerned with the integers that labels represent: enum weather weather_outside = rain 
+This peculiar property makes enums especially convinient in switch-case statements:
+enum weather { sunny  windy  cloudy  rain  } weather_outside 
+   
+switch (weather_outside) { case sunny: wear_sunglasses() 
+break 
+case windy: wear_windbreaker() 
+break 
+case cloudy: get_umbrella()  break  case rain:
+get_umbrella()  wear_raincoat()  break 
+}
+
+Networking in UNIX
+Network programming under UNIX is relatively simple in C 
+This guide assumes you already have a good general idea about C  UNIX and networks 
+A simple client
+To start with  we'll look at one of the simplest things you can do: initialize a stream connection and receive a message from a remote server 
+#include <stdio h>
+#include <stdlib h>
+#include <string h>
+#include <unistd h>
+#include <arpa/inet h>
+#include <sys/types h>
+#include <netinet/in h>
+#include <sys/socket h>
+#define MAXRCVLEN 500 #define PORTNUM 2300
+int main(int argc  char *argv[])
+{ char buffer[MAXRCVLEN + 1]  /* +1 so we can add null terminator */ int len  mysocket  struct sockaddr_in dest  mysocket = socket(AF_INET  SOCK_STREAM  0) 
+memset(&dest  0  sizeof(dest)) 	/* zero the struct */ dest sin_family = AF_INET 
+dest sin_addr s_addr = htonl(INADDR_LOOPBACK)  /* set destination IP number -
+localhost  127 0 0 1*/
+	dest sin_port = htons(PORTNUM) 	/* set destination port number
+*/ connect(mysocket  (struct sockaddr *)&dest  sizeof(struct sockaddr_in))  len = recv(mysocket  buffer  MAXRCVLEN  0) 
+/* We have to null terminate the received data ourselves */ buffer[len] = '\0'  printf("Received %s (%d bytes) \n"  buffer  len) 
+  close(mysocket)  return EXIT_SUCCESS  }
+This is the very bare bones of a client  in practice  we would check every function that we call for failure  however  error checking has been left out for clarity 
+Networking in UNIX
+As you can see  the code mainly revolves around dest which is a struct of type sockaddr_in  This struct stores information about the machine we want to connect to 
+mysocket = socket(AF_INET  SOCK_STREAM  0) 
+The socket() function tells our OS that we want a file descriptor for a socket which we can use for a network stream connection  what the parameters mean is mostly irrelevant for now 
+memset(&dest  0  sizeof(dest))  /* zero the struct */ dest sin_family = AF_INET  dest sin_addr s_addr = inet_addr("127 0 0 1")  /* set destination IP number */ dest sin_port = htons(PORTNUM)  /* set destination port number */ Now we get on to the interesting part:
+The first line uses memset() to zero the struct 
+The second line sets the address family  This should be the same value that was passed as the first parameter to socket()  for most purposes AF_INET will serve 
+The third line is where we set the IP of the machine we need to connect to  
+The variable dest sin_addr s_addr is just an integer stored in Big Endian format  but we don't have to know that as the inet_addr() function will do the conversion from string into Big Endian integer for us 
+The fourth line sets the destination port number  
+The htons() function converts the port number into a Big Endian short integer 
+If your program is going to be run solely on machines which use Big Endian numbers as default then dest sin_port = 21 would work just as well  
+However  for portability reasons htons() should always be used 
+Now that all of the preliminary work is done  we can actually make the connection and use it:
+connect(mysocket  (struct sockaddr *)&dest  sizeof(struct sockaddr_in)) 
+This tells our OS to use the socket mysocket to create a connection to the machine specified in dest  len = recv(mysocket  buffer  MAXRCVLEN  0) 
+Now this receives up to MAXRCVLEN bytes of data from the connection and stores them in the buffer string  
+The number of characters received is returned by recv()  
+It is important to note that the data received will not automatically be null terminated when stored in the buffer  so we need to do it ourselves with buffer[len] = '\0' 
+And that's about it 
+The next step after learning how to receive data is learning how to send it  
+If you've understood the previous section then this is quite easy  
+All you have to do is use the send() function  which uses the same parameters as recv()  
+If in our previous example buffer had the text we wanted to send and its length was stored in len we would write send(mysocket  buffer  len  0)  send() returns the number of bytes that were sent  
+It is important to remember that send()  for various reasons  may not be able to send all of the bytes  so it is important to check that its return value is equal to the number of bytes you tried to send  In most cases this can be resolved by resending the unsent data 
+A simple server
+#include <stdio h>
+#include <stdlib h>
+#include <string h>
+#include <unistd h>
+#include <arpa/inet h>
+#include <sys/types h>
+#include <netinet/in h>
+#include <sys/socket h> #define PORTNUM 2300
+int main(int argc  char *argv[])
+{ char* msg = "Hello World  \n" 
+struct sockaddr_in dest  /* socket info about the machine connecting to us
+*/ struct sockaddr_in serv  /* socket info about our server */
+	int mysocket 	/* socket used to listen for incoming connections
+*/ socklen_t socksize = sizeof(struct sockaddr_in) 
+	memset(&serv  0  sizeof(serv)) 	/* zero the struct before filling
+the fields */
+	serv sin_family = AF_INET 	/* set the type of connection to
+TCP/IP */ serv sin_addr s_addr = htonl(INADDR_ANY)  /* set our address to any
+interface */
+	serv sin_port = htons(PORTNUM) 	/* set the server port number */
+mysocket = socket(AF_INET  SOCK_STREAM  0) 
+/* bind serv information to mysocket */
+bind(mysocket  (struct sockaddr *)&serv  sizeof(struct sockaddr)) 
+/* start listening  allowing a queue of up to 1 pending connection */ listen(mysocket  1) 
+int consocket = accept(mysocket  (struct sockaddr *)&dest  &socksize) 
+while(consocket)
+{ printf("Incoming connection from %s - sending welcome\n" 
+inet_ntoa(dest sin_addr))  send(consocket  msg  strlen(msg)  0) 
+close(consocket) 
+consocket = accept(mysocket  (struct sockaddr *)&dest  &socksize) 
+}
+   close(mysocket)  return EXIT_SUCCESS  }
+Superficially  this is very similar to the client  
+The first important difference is that rather than creating a sockaddr_in with information about the machine we're connecting to  we create it with information about the server  and then we bind() it to the socket  
+This allows the machine to know the data received on the port specified in the sockaddr_in should be handled by our specified socket 
+The listen() function then tells our program to start listening using the given socket  
+The second parameter of listen() allows us to specify the maximum number of connections that can be queued  
+Each time a connection is made to the server it is added to the Networking in UNIX queue  
+We take connections from the queue using the accept() function  
+If there is no connection waiting on the queue the program waits until a connection is received  The accept() function returns another socket  
+This socket is essentially a ”session” socket  and can be used solely for communicating with connection we took off the queue  
+The original socket (mysocket) continues to listen on the specified port for further connections 
+Once we have ”session” socket we can handle it in the same way as with the client  using send() and recv() to handle data transfers 
+Note that this server can only accept one connection at a time  if you want to simultaneously handle multiple clients then you'll need to fork() off separate processes  or use threads  to handle the connections 
+Useful network functions
+int gethostname(char *hostname  size_t size) 
+The parameters are a pointer to an array of chars and the size of that array  
+If possible  it finds the hostname and stores it in the array  On failure it returns -1 
+struct hostent *gethostbyname(const char *name) 
+This function obtains information about a domain name and stores it in a hostent struct  
+The most useful part of a hostent structure is the (char**) h_addr_list field  which is a null terminated array of the IP addresses associated with that domain  
+The field h_addr is a pointer to the first IP address in the h_addr_list array  
+Returns NULL on failure 
+28 4 FAQs
+28 4 1 What about stateless connections 
+If you don't want to exploit the properties of TCP in your program and would rather just use a UDP connection  then you can just replace SOCK_STREAM with SOCK_DGRAM in your call to socket() and use the result in the same way  It is important to remember that UDP does not guarantee delivery of packets and order of delivery  so checking is important 
+If you want to exploit the properties of UDP  then you can use sendto() and recvfrom()  which operate like send() and recv() except you need to provide extra parameters specifying who you are communicating with 
+28 4 2 How do I check for errors 
+The functions socket()  recv() and connect() all return -1 on failure and use errno for further details 
+Common practices
+With its extensive use  a number of common practices and conventions have evolved to help avoid errors in C programs 
+These are simultaneously a demonstration of the application of good software engineering principles to a language and an indication of the limitations of C  
+Although few are used universally  and some are controversial  each of these enjoys wide use 
+Dynamic multidimensional arrays
+Although one-dimensional arrays are easy to create dynamically using malloc  and fixedsize multidimensional arrays are easy to create using the built-in language feature  dynamic multidimensional arrays are trickier  
+There are a number of different ways to create them  each with different tradeoffs  
+The two most popular ways to create them are:
+• They can be allocated as a single block of memory  just like static multidimensional arrays  This requires that the array be rectangular (i e  subarrays of lower dimensions are static and have the same size)  
+• The disadvantage is that the syntax of declaration the pointer is a little tricky for programmers at first  
+• For example  if one wanted to create an array of ints of 3 columns and rows rows  one would do
+int (*multi_array)[3] = malloc(rows * sizeof(int[3])) 
+(Note that here multi_array is a pointer to an array of 3 ints )
+Because of array-pointer interchangeability  you can index this just like static multidimensional arrays  i e  multi_array[5][2] is the element at the 6th row and 3rd column 
+• Dynamic multidimensional arrays can be allocated by first allocating an array of pointers  and then allocating subarrays and storing their addresses in the array of pointers 
+(This approach is also known as an Iliffe vector)  
+The syntax for accessing elements is the same as for multidimensional arrays described above (even though they are stored very differently)  
+This approach has the advantage of the ability to make ragged arrays (i e  with subarrays of different sizes)  
+However  it also uses more space and requires more levels of indirection to index into  and can have worse cache performance  
+It also requires many dynamic allocations  each of which can be expensive 
+Common practices
+In some cases  the use of multi-dimensional arrays can best be addressed as an array of structures 
+Before user-defined data structures were available  a common technique was to define a multi-dimensional array  where each column contained different information about the row  
+This approach is also frequently used by beginner programmers  
+For example  columns of a two-dimensional character array might contain last name  first name  address  etc 
+In cases like this  it is better to define a structure that contains the information that was stored in the columns  and then create an array of pointers to that structure  
+This is especially true when the number of data points for a given record might vary  such as the tracks on an album  
+In these cases  it is better to create a structure for the album that contains information about the album  along with a dynamic array for the list of songs on the album  
+Then an array of pointers to the album structure can be used to store the collection 
+• Another useful way to create a dynamic multi-dimensional array is to flatten the array and index manually  
+For example  a 2-dimensional array with sizes x and y has x*y elements  therefore can be created by
+int dynamic_multi_array[x*y] 
+The index is slightly trickier than before  but can still be obtained by y*i+j  
+You then access the array with
+static_multi_array[i][j]  dynamic_multi_array[y*i+j] 
+Some more examples with higher dimensions:
+int dim1[w]  int dim2[w*x]  int dim3[w*x*y]  int dim4[w*x*y*z] 
+dim1[i]
+dim2[w*j+i] 
+dim3[w*(x*i+j)+k] // index is k + w*j + w*x*i dim4[w*(x*(y*i+j)+k)+l] // index is w*x*y*i + w*x*j + w*k + l
+Note that w*(x*(y*i+j)+k)+l is equal to w*x*y*i + w*x*j + w*k + l  but uses fewer operations (see Horner's Method)  
+It uses the same number of operations as accessing a static array by dim4[i][j][k][l]  so should not be any slower to use 
+The advantage to using this method is that the array can be passed freely between functions without knowing the size of the array at compile time (since C sees it as a 1-dimensional array  although some way of passing the dimensions is still necessary)  and the entire array is contiguous in memory  so accessing consecutive elements should be fast  
+The disadvantage is that it can be difficult at first to get used to how to index the elements 
+Constructors and destructors
+In most object-oriented languages  objects cannot be created directly by a client that wishes to use them  
+Instead  the client must ask the class to build an instance of the object using a special routine called a constructor  
+Constructors are important because they allow an object to enforce invariants about its internal state throughout its lifetime  
+Destructors  called at the end of an object's lifetime  are important in systems where an object holds exclusive access to some resource  and it is desirable to ensure that it releases these resources for use by other objects 
+Since C is not an object-oriented language  it has no built-in support for constructors or destructors  
+It is not uncommon for clients to explicitly allocate and initialize records and other objects 
+However  this leads to a potential for errors  since operations on the object may fail or behave unpredictably if the object is not properly initialized  
+A better approach is to have a function that creates an instance of the object  possibly taking initialization parameters  as in this example:
+struct string { size_t size  char *data 
+} 
+struct string *create_string(const char *initial) { assert (initial  = NULL) 
+struct string *new_string = malloc(sizeof(*new_string)) 
+if (new_string  = NULL) { new_string->size = strlen(initial)  new_string->data = strdup(initial) 
+}
+   return new_string  }
+Similarly  if it is left to the client to destroy objects correctly  they may fail to do so  causing resource leaks  
+It is better to have an explicit destructor which is always used  such as this one:
+void free_string(struct string *s) { assert (s  = NULL)  free(s->data)  ''/* free memory held by the structure */''
+	free(s) 	''/* free the structure itself */''
+}
+It is often useful to combine destructors with #Nulling freed pointers 
+Sometimes it is useful to hide the definition of the object to ensure that the client does not allocate it manually  
+To do this  the structure is defined in the source file (or a private header file not available to users) instead of the header file  and a forward declaration is put in the header file:
+struct string 
+struct string *create_string(const char *initial)  void free_string(struct string *s) 
+Nulling freed pointers
+As discussed earlier  after free() has been called on a pointer  it becomes a dangling pointer 
+Worse still  most modern platforms cannot detect when such a pointer is used before being reassigned 
+One simple solution to this is to ensure that any pointer is set to a null pointer immediately after being freed: 
+free(p) 
+p = NULL 
+Unlike dangling pointers  a hardware exception will arise on many modern architectures when a null pointer is dereferenced  
+Also  programs can include error checks for the null value  but not for a dangling pointer value  To ensure it is done at all locations  a macro can be used:
+#define FREE(p)	do { free(p)  (p) = NULL  } while(0)
+(To see why the macro is written this way  see #Macro conventions ) 
+Also  when this technique is used  destructors should zero out the pointer that they are passed  and their argument must be passed by reference to allow this  
+For example  here's the destructor from #Constructors and destructors updated:
+void free_string(struct string **s) { assert(s  = NULL && *s  = NULL) 
+FREE((*s)->data)  ''/* free memory held by the structure */''
+	FREE(*s) 	''/* free the structure itself */''
+	*s=NULL 	''/* zero the argument */''
+}
+Unfortunately  this idiom will not do anything to any other pointers that may be pointing to the freed memory  
+For this reason  some C experts regard this idiom as dangerous due to creating a false sense of security 
+Macro conventions
+Because preprocessor macros in C work using simple token replacement  they are prone to a number of confusing errors  some of which can be avoided by following a simple set of conventions:
+1  Placing parentheses around macro arguments wherever possible  
+2  This ensures that  if they are expressions  the order of operations does not affect the behavior of the expression  
+3  For example:
+• Wrong: #define square(x) x*x
+• Better: #define square(x) (x)*(x)
+4  Placing parentheses around the entire expression if it is a single expression  
+5  Again  this avoids changes in meaning due to the order of operations 
+• Wrong: #define square(x) (x)*(x)
+• Better: #define square(x) ((x)*(x))
+• Dangerous  remember it replaces the text in verbatim  
+• Suppose your code is square (x++)  after the macro invocation will x be incremented by 2
+6  If a macro produces multiple statements  or declares variables  it can be wrapped in a do {     } while(0) loop  with no terminating semicolon  
+7  This allows the macro to be used like a single statement in any location  such as the body of an if statement  while still allowing a semicolon to be placed after the macro invocation without creating a null statement  
+8  Care must be taken that any new variables do not potentially mask portions of the macro's arguments 
+• Wrong: #define FREE(p) free(p)  p = NULL 
+• Better: #define FREE(p) do { free(p)  p = NULL  } while(0)
+9  Avoiding using a macro argument twice or more inside a macro  if possible  this causes problems with macro arguments that contain side effects  such as assignments 
+10  If a macro may be replaced by a function in the future  considering naming it like a function 
+C and beyond
+
+Particularities of C
+C is an efficient  minimalist language that has some peculiarities that a programmer must be aware of  
+To address these  sometimes a good solution is to combine another language with C for added flexibility and power  like the combination of Emacs-LISP and C used for Emacs  
+Sometimes they can be addressed at the cost of slower speed and increased complexity by using special constructs that will guarantee function and security  
+Mostly however  through practice  C programmers have no trouble with the things mentioned here  and prefer using a language that closely models the general purpose  Von Neumann hardware architecture 
+Below are several of these particularities of ANSI C (that sometimes are also its strengths)  some minor and some major:
+Lack of differentiation between arrays and pointers
+The very first C (around 1973) did not have arrays at all  modern implementations are contiguous areas in memory accessed with pointer arithmetic (note: a declared array cannot be assigned to like a pointer)  which circumvents the need to declare arrays with a fixed size  
+This ability  however  can cause buffer overflow errors with careless use 
+Arrays do not store their length
+A consequence of the above feature  
+This means that the program might need to explicitly perform a bounds check before accessing an array  
+Unless a function is passed an array of a fixed size  there is no way for it to discover the length of the array it was given: So the function must be given the length  perhaps passed to the function as a separate variable or in a structure  
+Because of this  most implementations do not provide automatic array bounds checking  and manual bounds checking is error prone 
+If a C (or C++) program attempts to access an array element outside of the actual allocated memory  then a buffer overflow occurs  typically crashing the program  
+Buffer overflow bugs are a common security vulnerability too  
+Many other computer languages provide automatic bounds checking  and so they are nearly immune to such bugs 
+Variable Length Arrays
+A VLA   variable length array   can only be used for function parameters and auto variables 
+VLAs cannot be allocated on the heap or used inside a structure (except as the last item in the structure)  
+It's not possible to define a structure that corresponds to Particularities of C the standard Forth dictionary definition (which has 2 variable-length parts)  except as an undifferentiated array of char 
+Arbitrary-size built-in 2D or 3D arrays are not widely supported
+This feature has been added starting with the C99 specification for variable-length arrays  although many C compilers still do not support it  
+Without VLAs  there is no way for a function to accept 2D or 3D arrays of arbitrary size  
+In particular  it's impossible to define a function that accepts int a[5][4][3] on one call  and later accepts int b[10][10][10] in a later call  
+Instead of using the built-in 2D or 3D array data type  C programmers use some other data type to hold (mathematical) 2D or 3D arrays of arbitrary size (multi-dimensional arrays) -- see C Programming/Common practices#Dynamic multidimensional arrays for details 
+No formal String data type
+Strings are character arrays (lacking any abstraction) and inherit all their constraints (structs can provide an abstraction  to an extent) 
+Weak type safety
+C is not very type-safe  
+The memory management functions operate on untyped pointers  there is no built-in run-time type enforcement  and the type system can be circumvented with pointers and casts  Additionally  typedef does not create a new type but only an alias  thus it serves solely for code legibility  
+However  it is possible to use single member structs to enforce type safety 
+No garbage collection
+As a low-level language designed for minimum overhead  C features only manual memory management  which can allow simple memory leaks to go on unchecked 
+Local variables are uninitialized upon declaration
+Local (but not global) variables must be initialized manually  before this  they contain whatever was already in memory at the time  
+This is not unusual  but the C standard does not forbid access to uninitialized variables (which is) 
+Unwieldy function pointer syntax
+Function pointers take the form of [return type] [name]([arg1 type])([arg2 type])  making them somewhat difficult to use  
+Typedefs can alleviate this burdensome syntax  For example  typedef int fn(int i)   See C Programming/Pointers and arrays#Pointers to Functions for more details 
+No reflection
+It is not possible for a C program -- at runtime -- to evaluate a string as if it were a source C code statement 
+Nested functions are not standard
+However  many C compilers do support nested functions  including GNU C 
+No formal exception handling
+ Some standard functions return special values that must be handled manually  
+ For example  malloc() returns null upon failure  
+For example  one must store the return value of getchar() in an int (not  as one might expect  in a char) in order to reliably detect the end-of-file -- see EOF pitfall  
+Programs that do not include appropriate error handling might work fine most of the time  but can crash or otherwise malfunction when exceptional cases occur  
+POSIX systems often use signal() to handle some kinds of exceptions  (See {where can I read more about signal() } for details)  
+Some programs use setjmp()  longjmp() or goto to manually handle some kinds of exceptions  (See C Programming/Control#One last thing: goto and C Programming/Coroutines for details)  
+No anonymous function definitions
+Language Overloading and Extensions
+Most C compilers have one or more ”extensions” to the standard C language  to do things that are inconvenient to do in standard  portable C 
+Some examples of language extensions:
+• in-line assembly language
+• interrupt service routines
+• variable-length data structure (a structure whose last item is a ”zero-length array”) 
+• re-sizeable multidimensional arrays
+• various ”#pragma” settings to compile quickly  to generate fast code  or to generate compact code 
+• bit manipulation  especially bit-rotations and things involving the ”carry” bit
+• storage alignment
+• Arrays whose length is computed at run time 
+External links
+• GNU C: Extensions to the C Language
+• C/C++ interpreter Ch extensions to the C language for scripting
+• SDCC: Storage Class Language Extensions
+Combining Languages
+Assembler
+See Embedded Systems/Mixed C and Assembly Programming
+Cg
+Make the main program ( for CPU) in C  which loads and run the Cg program ( for GPU
+) 
+Header Files
+Add to C program :
+#include <Cg/cg h> /* To include the core Cg runtime API into your program */ #include <Cg/cgGL h> /* to include the OpenGL-specific Cg runtime API */
+Java
+Using the Java native interface (JNI)  Java applications can call C libraries 
+Perl
+To mix Perl and C  we can use XS  
+XS is an interface description file format used to create an extension interface between Perl and C code (or a C library) which one wishes to use with Perl 
+The basic procedure is very simple  
+We can create the necessary subdirectory structure by running ”h2xs” application (e g  ”h2xs -A -n Modulename”)  
+This will create - among others - a Makefile PL  a  pm Perl module and a  xs XSUB file in the subdirectory tree  
+We can edit the  xs file by adding our code to that  let's say:
+void hello()
+CODE: printf("Hello  world \n") 
+and we can successfully use our new command at Perl side  after running a ”perl Makefile PL” and ”make” 
+Further details can be found on the perlxstut perldoc page 
+Python
+Here can be found some details about extending Python with modules written in C  You might read about Cython and Pyrex as well  that makes easier to create modules in C  translating a Python-like code into C  Using the Python ctypes module  one can write C code directly into Python
+Object Oriented Programming: The GObject System
+Since the C Programming-Language was not created with Object Oriented Programming in mind  it has no explicit support for classes  inheritance  polymorphism and other OO Concepts  
+Neither does it have its own Virtual Table  which is found in object-oriented languages such C++  Java and C#  
+Therefore  it might not be as easy to implement an object-oriented programming paradigm using only C's language features and standard library  
+However  it can be done using structures which contain both function pointers as well as data  for example  or by using third-party libraries 
+There are many third-party libraries designed to add support for object-oriented programming in C 
+The most general-purpose and widely used among these is the GObject System  which is part of Glib 
+The GObject System comes with its own virtual table 
+To create an object in C using the GObject system  it has to be sub-classed from the GObject struct 
+Object-Creation
+In this example a new object will be implemented directly derived from GObject  
+For simplicity  the object is named MyObject 
+Declaring An Object
+To create a simple object  two structs must be declared  
+The instance and the class  
+They are usually declared in this manner:
+/* in myobject h */ typedef struct _MyObject MyObject  typedef struct _MyObjectClass MyObjectClass 
+struct _MyObject
+{
+GObject parent_instance 
+/* instance members */
+} 
+struct _MyObjectClass
+{
+GObjectClass parent_class 
+/* class members */
+} 
+Defining The Object
+Before use  the newly created object must be defined 
+/* in myobject c */
+G_DEFINE_TYPE(MyObject  my_object  G_TYPE_OBJECT) 
+Static Functions
+There are a few static functions that may or may not to be defined  depending on your object  For a minimal object these ones are compulsory:
+/* in myobject c */
+static void my_object_class_init(MyObjectClass *_class)
+{
+/* code */
+}
+static void my_object_init(MyObject* obj)
+{
+/* code */
+}
+The Constructor
+There is no internal way of allocating memory for an object in C  
+Therefore an explicit constructor must be declared for the new object 
+/* in myobject c */
+GObject* my_object_new(void)
+{ return g_object_new(MY_TYPE_OBJECT   0) 
+}
+Object-Usage
+Although creating the object using its own pointer-type is perfectly valid  it is recommended to use the pointer-type of the object at the top of the hierarchy i e the furthest off base class 
+The newly created object may now be used like this:
+/* in main c */
+/* Note: GObject is at the top of the hierarchy  */
+/* declaration and construction */
+GObject* myobj = my_object_new() 
+/* destruction */ g_object_unref(myobj) 
+Inheritance
+Concept
+Inheritance is one of the most widely used and useful OO Concepts  
+It provides an efficient way to reuse existing code by wrapping it up into an object and then sub-classing it 
+The new classes are known as derived classes  
+Many object hieriarchies can be created using inheritance  
+Inheritance is also one of the most efficient ways of abstracting code 
+Implementation
+In the GObject System  inheritance can be achieved by sub-classing GObject  
+Since C provides no keyword or operator for inheritance  a derived object is usually made by declaring the base instance and base class as a member of the derived instance and derived class respectively  
+In C code:
+/* derived object instance */ struct DerivedObject
+{
+/* the base instance is a member of the derived instance */ BaseObject parent_instance 
+} 
+/* derived object class */ struct DerivedObjectClass
+{
+/* the base class is a member of the derived class */ BaseObjectClass parent_class 
+} 
+Computer Programming
+The following articles are C adaptations from articles of the Computer programming book 
+
+Statements
+A statement is a command given to the computer that instructs the computer to take a specific action  such as display to the screen  or collect input 
+A computer program is made up of a series of statements 
+In C  a statement can be any of the following:
+Labeled Statements
+A statement can be preceded by a label  
+Three types of labels exist in C 
+A simple identifier followed by a colon (:) is a label  
+Usually  this label is the target of a goto statement 
+Within switch statements  case and default labeled statements exist  
+A statement of the form
+case constant-expression : statement
+indicates that control will pass to this statement if the value of the control expression of the switch statement matches the value of the constant-expression  
+A statement of the form default: statement indicates that control will pass to this statement if the control expression of the switch statement does not match any of the constant-expressions within the switch statement  
+If the default statement is omitted  the control will pass to the statement following the switch statement 
+Compound Statements
+A compound statement is the way C groups multiple statements into a single statement  
+It consists of multiple statements and declarations within braces (i e  { and })  
+In the ANSI C Standard of 1989-1990  a compound statement contained an optional list of declarations followed by an optional list of statements  in more recent revisions of the Standard  declarations and statements can be freely interwoven through the code  
+The body of a function is also a compound statement by rule 
+Expression Statements
+An expression statement consists of an optional expression followed by a semicolon ( )  
+If the expression is present  the statement may have a value  
+If no expression is present  the statement is often called the null statement 
+The printf function calls are expressions  so statements such as printf ("Hello World \n")  are expression statements 
+Selection Statements
+Three types of selection statements exist in C: if(expression) statement 
+In this type of if-statement  the sub-statement will only be executed iff the expression is non-zero 
+if( expression ) statement else statement
+In this type of if-statement  the first sub-statement will only be executed iff the expression is non-zero  otherwise  the second sub-statement will be executed  
+Each else matches up with the closest unmatched if  so that the following two snippets of code are not equal:
+if (expression)
+  if (secondexpression) statement1  else
+statement2 
+if (expression)
+{ if (secondexpression) statement1 
+  } else
+statement2 
+because in the first  the else statement matches up with the if statement that has secondexpression for a control  but in the second  the braces force the else to match up with the if that has expression for a control 
+Switch statements are also a type of selection statement  
+They have the format switch( expression ) statement
+The statement here is usually compound and it contains case-labeled statements and optionally a default-labeled statement 
+Iteration Statements
+C has three kinds of iteration statements  
+The first is a while-statement with the form while( expression ) statement
+The substatement of a while runs repeatedly as long as the control expression evaluates to non-zero at the beginning of each iteration  
+If the control expression evaluates to zero the first time through  the substatement may not run at all  The second is a do-while statement of the form do statement while( expression ) 
+This is similar to a while loop  except that the controlling expression is evaluated at the end of the loop instead of the beginning and consequently the sub-statement must execute at least once 
+The third type of iteration statement is the for-statement  
+In ANSI C 1989  it has the form for( expressionopt   expressionopt   expressionopt ) statement 
+In more recent versions of the C standard  a declaration can substitute for the first expression  
+The opt subscript indicates that the expression is optional 
+The statement
+for (e1  e2  e3) s 
+is the rough equivalent of
+{ e1  while (e2)
+{ s  e3 
+}
+}
+except for the behavior of continue statements within s 
+The e1 expression represents an initial condition  e2 a control expression  and e3 what to happen on each iteration of the loop  
+If e2 is missing  the expression is considered to be nonzero on every iteration  and only a break statement within s (or a call to a non-returning function such as exit or abort) will end the loop 
+Jump Statements
+C has four types of jump statements  
+The first  the goto statement  is used sparingly and has the form goto identifier  
+This statement transfers control flow to the statement labeled within the given identifier  
+The second  the break statement  with the form break  is used within iteration statements and switch statements to pass control flow to the statement following the while  do-while  for  or switch 
+The third  the continue statement  with the form continue  is used within the substatement of interaction statements to transfer control flow to the place just before the end of the substatement  
+In for statements the iteration expression will then be executed before the controlling expression is evaluated  
+The fourth type of jump statement is the return statement with the form return expressionopt  
+This statement returns from the function  
+If the function return type is void  the function may not return a value  otherwise  the expression represents the value to be returned 
+Character sets
+Programs written in C can read and write any character set  provided the libraries that support them are included/used 
+The source code for C programs  however  is usually limited to the ASCII character set 
+In a file containing source code  the end of a line is sometimes  depending on the operating system it was created on not a newline character but compilers treat the end of each line as if it were a single newline character 
+Virtually all compilers allow the $  @  and ‘ characters in string constants  Many compilers also allow literal multibyte Unicode characters  but they are not portable 
+Certain characters must be escaped with a backslash to represent themselves in a string or character constant  
+These are:
+•	\\ Literal backslash
+•	\" Literal double quote
+•	\' Literal single quote	
+•	\n Newline
+•	\t Horizontal tab
+•	\f Form feed	
+• 	\v Vertical tab
+Additionally  some compilers allow these characters:
+• \r Carriage return
+• \a Alert (audible bell)
+• \b Backspace
+\xhh   where hh is a hexadecimal number  is used to represent arbitrary bytes (including \x00  the zero byte) \uhhhh or \Uhhhhhhhh   where h is a hexadecimal number  is used to portably represent Unicode characters 
+
